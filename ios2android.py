@@ -2,7 +2,7 @@
 # coding=utf-8
 import os
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, isdir
 from shutil import copyfile
 import sys
 
@@ -42,28 +42,38 @@ def create_dir(dir_path):
         os.makedirs(dir_path)
 
 
-path_of_images = sys.argv[1]
+def move_files_in_dir(path_of_images):
+    if path_of_images.endswith('.zip'):
+        import zipfile
 
-if path_of_images.endswith('.zip'):
-    import zipfile
+        unzip_dir = 'unzipped'
+        with zipfile.ZipFile(path_of_images, "r") as z:
+            z.extractall(unzip_dir)
+        path_of_images = unzip_dir
 
-    unzip_dir = 'unzipped'
-    with zipfile.ZipFile(path_of_images, "r") as z:
-        z.extractall(unzip_dir)
-    path_of_images = unzip_dir
+    if not isdir(path_of_images):
+        return;
 
-for directory in res_dirs:
-    create_dir(directory)
+    for filename in listdir(path_of_images):
+        fullpath = join(path_of_images, filename)
+        if isfile(fullpath) and [ext for ext in allowed_extensions if ext in filename]:
+            path = res_ldpi
+            if retina_sufix_2x in filename:
+                path = res_xhdpi
+            if retina_sufix_3x in filename:
+                path = res_xxhdpi
 
-for filename in listdir(path_of_images):
-    if isfile(join(path_of_images, filename)) and [ext for ext in allowed_extensions if ext in filename]:
-        path = res_ldpi
-        if retina_sufix_2x in filename:
-            path = res_xhdpi
-        if retina_sufix_3x in filename:
-            path = res_xxhdpi
+            new_name = sanitize_filename(filename)
+            dst_path = os.path.join(path, new_name)
+            src_path = os.path.join(path_of_images, filename)
+            copyfile(src_path, dst_path)
+        else:
+            move_files_in_dir(fullpath)
+        pass
 
-        new_name = sanitize_filename(filename)
-        dst_path = os.path.join(path, new_name)
-        src_path = os.path.join(path_of_images, filename)
-        copyfile(src_path, dst_path)
+if __name__ == '__main__':
+    for directory in res_dirs:
+        create_dir(directory)
+    path = sys.argv[1]
+    move_files_in_dir(path)
+
