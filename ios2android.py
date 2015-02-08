@@ -13,23 +13,25 @@ if len(sys.argv) != 2:
     print('usage: ios2android.py [path | file.zip]')
     exit(-1)
 
+retina_sufix_3x = '@3x'
 retina_sufix_2x = '@2x'
 retina_sufix_1x = '@1x'
 
 allowed_extensions = ['.png']
 
 res = 'res'
-res_ldpi = 'res\\drawable-ldpi'
-res_mdpi = 'res\\drawable-mdpi'
-res_hdpi = 'res\\drawable-hdpi'
-res_xhdpi = 'res\\drawable-xhdpi'
-res_xxhdpi = 'res\\drawable-xxhdpi'
+res_ldpi = 'res/drawable-ldpi'
+res_mdpi = 'res/drawable-mdpi'
+res_hdpi = 'res/drawable-hdpi'
+res_xhdpi = 'res/drawable-xhdpi'
+res_xxhdpi = 'res/drawable-xxhdpi'
 res_dirs = [res, res_ldpi, res_mdpi, res_hdpi, res_xhdpi, res_xxhdpi]
 
 
 def sanitize_filename(name):
     new_filename = name.replace(retina_sufix_1x, '')
     new_filename = new_filename.replace(retina_sufix_2x, '')
+    new_filename = new_filename.replace(retina_sufix_3x, '')
     new_filename = new_filename.replace('-', '_')
     new_filename = new_filename.lower()
     return new_filename
@@ -57,7 +59,9 @@ for filename in listdir(path_of_images):
     if isfile(join(path_of_images, filename)) and [ext for ext in allowed_extensions if ext in filename]:
         path = res_ldpi
         if retina_sufix_2x in filename:
-            path = res_hdpi
+            path = res_xhdpi
+        if retina_sufix_3x in filename:
+            path = res_xxhdpi
 
         new_name = sanitize_filename(filename)
         dst_path = os.path.join(path, new_name)
